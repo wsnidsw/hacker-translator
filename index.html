@@ -1,0 +1,907 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>黑话翻译器 — 黑话转人话</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: #f5f3ff;
+  color: #1f2937;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+.container {
+  width: 100%;
+  max-width: 680px;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  padding: 32px 0 16px;
+}
+.header h1 {
+  font-size: 28px;
+  color: #4f46e5;
+  font-weight: 800;
+}
+.header .subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  background: #e5e7eb;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 20px;
+}
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px 0;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.2s;
+  color: #6b7280;
+  user-select: none;
+  border: none;
+  background: transparent;
+}
+.tab.active {
+  background: #4f46e5;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(79,70,229,0.3);
+}
+
+/* Cards */
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* Textarea & Input */
+.textarea {
+  width: 100%;
+  min-height: 120px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+  line-height: 1.6;
+}
+.textarea:focus, .input:focus {
+  border-color: #4f46e5;
+}
+.input {
+  width: 100%;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 16px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+/* Buttons */
+.btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 12px;
+}
+.btn-primary {
+  background: #4f46e5;
+  color: #fff;
+}
+.btn-primary:hover {
+  background: #4338ca;
+  box-shadow: 0 4px 14px rgba(79,70,229,0.35);
+}
+.btn-primary:active {
+  transform: scale(0.98);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Result area */
+.hidden { display: none !important; }
+
+.highlight-text {
+  font-size: 16px;
+  line-height: 2;
+  word-break: break-word;
+}
+.highlight-text mark {
+  background: #fef08a;
+  color: #1f2937;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: help;
+  font-weight: 600;
+  position: relative;
+}
+.highlight-text mark:hover {
+  background: #fde047;
+}
+
+/* Glossary table */
+.glossary-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  font-size: 14px;
+}
+.glossary-table th {
+  text-align: left;
+  padding: 8px 6px;
+  color: #6b7280;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e5e7eb;
+}
+.glossary-table td {
+  padding: 10px 6px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: top;
+}
+.glossary-table .slang {
+  font-weight: 700;
+  color: #4f46e5;
+  white-space: nowrap;
+  padding-right: 12px;
+}
+.glossary-table .meaning {
+  color: #374151;
+  line-height: 1.5;
+}
+
+/* Query card result */
+.query-result {
+  padding: 16px;
+  background: #f0fdf4;
+  border-radius: 12px;
+  border: 1px solid #bbf7d0;
+  margin-top: 12px;
+  line-height: 1.6;
+}
+.query-result .slang-word {
+  font-size: 20px;
+  font-weight: 800;
+  color: #4f46e5;
+}
+.query-result .arrow {
+  color: #9ca3af;
+  margin: 0 8px;
+}
+.query-result .explanation {
+  color: #374151;
+  font-size: 16px;
+}
+.query-result .empty {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Section labels */
+.section-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.empty-hint {
+  text-align: center;
+  color: #9ca3af;
+  padding: 24px 0;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 20px 0 16px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+.footer strong {
+  color: #4f46e5;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 24px;
+  font-size: 14px;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+
+/* Quick tags */
+.quick-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.quick-tag {
+  background: #ede9fe;
+  color: #4f46e5;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+.quick-tag:hover {
+  background: #ddd6fe;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>黑话翻译器</h1>
+    <p class="subtitle">网络流行语 × 职场黑话 → 一看就懂的大白话</p>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-mode="translate">整段翻译</button>
+    <button class="tab" data-mode="lookup">单词查询</button>
+  </div>
+
+  <!-- Mode 1: Translate -->
+  <div id="mode-translate">
+    <div class="card">
+      <textarea class="textarea" id="translateInput" placeholder="粘贴或输入含黑话的文字…&#10;&#10;例如：这波操作真的yyds，我直接破防了，谁懂啊家人们"></textarea>
+      <button class="btn btn-primary" id="translateBtn">翻译</button>
+    </div>
+    <div id="translateResult" class="hidden">
+      <div class="card">
+        <div class="section-label">原文（黑话高亮）</div>
+        <div class="highlight-text" id="highlightedText"></div>
+      </div>
+      <div class="card">
+        <div class="section-label">黑话对照表</div>
+        <table class="glossary-table">
+          <thead><tr><th>黑话</th><th>大白话</th></tr></thead>
+          <tbody id="glossaryBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode 2: Lookup -->
+  <div id="mode-lookup" class="hidden">
+    <div class="card">
+      <input class="input" id="lookupInput" placeholder="输入一个黑话词，如 yyds、破防、绝绝子…" autocomplete="off">
+      <button class="btn btn-primary" id="lookupBtn">查询</button>
+      <div id="lookupResult"></div>
+    </div>
+    <div class="card">
+      <div class="section-label">试试这些</div>
+      <div class="quick-tags" id="quickTags"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    词库共收录 <strong id="dictCount">0</strong> 条黑话 &nbsp;|&nbsp; 纯前端 · 离线可用
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// DICTIONARY: 黑话 → 大白话
+// ============================================================
+const DICT = new Map([
+  // === 拼音缩写 ===
+  ["yyds", "永远的神 — 表示极度赞赏、崇拜"],
+  ["nsdd", "你说得对 — 表示赞同"],
+  ["xswl", "笑死我了 — 表示非常搞笑"],
+  ["awsl", "啊我死了 — 表示可爱到窒息或极度激动"],
+  ["dbq", "对不起 — 表达歉意"],
+  ["u1s1", "有一说一 — 客观地说"],
+  ["srds", "虽然但是 — 表示转折，先承认再反驳"],
+  ["pyq", "朋友圈 — 微信朋友圈"],
+  ["zqsg", "真情实感 — 发自内心的真实感受"],
+  ["blx", "玻璃心 — 心理承受能力弱，容易受伤"],
+  ["plmm", "漂亮妹妹 — 对好看女生的称呼"],
+  ["xjj", "小姐姐 — 对年轻女性的称呼"],
+  ["bdjw", "不懂就问 — 虚心请教"],
+  ["nss", "暖说说 — 在QQ空间说说下暖心评论"],
+  ["rnb", "真的牛 — 表示非常厉害"],
+  ["yygq", "阴阳怪气 — 说话含沙射影、冷嘲热讽"],
+  ["kdl", "磕到了 — 嗑CP时表示糖很甜、很上头"],
+
+  // === 谐音梗 ===
+  ["栓Q", "Thank you 的谐音 — 谢谢你（带调侃语气）"],
+  ["芭比Q", "Barbecue 的谐音 — 完蛋了、糟糕了"],
+  ["瑞思拜", "Respect 的谐音 — 表示尊敬、佩服"],
+  ["集美", "姐妹的谐音 — 好姐妹、闺蜜"],
+  ["家人们", "家人们的谐音 — 各位朋友、大家"],
+  ["雨女无瓜", "与你无关的谐音 — 跟你没关系"],
+  ["蓝瘦香菇", "难受想哭的谐音 — 心情低落"],
+  ["蚌埠住了", "绷不住了的谐音 — 忍不住了、憋不住了（笑或哭）"],
+  ["耗子尾汁", "好自为之的谐音 — 你好自为之"],
+  ["酱紫", "这样子的谐音 — 这样子"],
+  ["害", "嗨的谐音 — 表示叹气、无奈"],
+  ["尊嘟假嘟", "真的假的谐音 — 真的假的"],
+  ["哈基米", "蜂蜜的日语谐音 — 可爱的猫咪/小动物"],
+  ["美丽废物", "美丽但无用 — 好看但不实用的人或物"],
+  ["泰裤辣", "太酷了的谐音 — 太酷了"],
+
+  // === 情绪状态 ===
+  ["emo", "Emotional — 情绪低落、伤感、抑郁"],
+  ["破防", "心理防线被击溃 — 情绪崩溃或被戳中"],
+  ["破大防", "心理防线彻底崩溃 — 极度破防"],
+  ["社恐", "社交恐惧症 — 害怕社交场合"],
+  ["社牛", "社交牛逼症 — 社交能力超强、不怕生"],
+  ["内耗", "内心自我消耗 — 过度思虑、自我纠结"],
+  ["精神内耗", "精神层面的自我消耗 — 想太多、自己消耗自己"],
+  ["松弛感", "放松不紧绷的状态 — 心态好、不焦虑"],
+  ["emo了", "进入伤感状态 — 心情不好了"],
+  ["焦虑", "过度担忧、紧张不安"],
+  ["上头", "让人着迷、停不下来 — 非常喜欢或沉迷"],
+  ["下头", "让人扫兴、失去兴趣 — 突然不喜欢了"],
+  ["生理性喜欢", "身体本能产生的吸引力 — 纯身体层面的心动"],
+  ["发疯文学", "用极端夸张的文字表达情绪 — 疯疯癫癫的表达方式"],
+
+  // === 生活态度 ===
+  ["躺平", "放弃过度竞争、选择低欲望生活"],
+  ["摆烂", "破罐子破摔、干脆放弃努力"],
+  ["内卷", "同行间激烈竞争、互相消耗"],
+  ["佛系", "随缘、不强求、看淡一切的生活态度"],
+  ["凡尔赛", "用抱怨的方式炫耀 — 看似低调实则炫耀"],
+  ["摸鱼", "工作/学习中偷懒、混时间"],
+  ["划水", "浑水摸鱼、不认真干活"],
+  ["打工人", "自嘲式的上班族自称"],
+  ["工具人", "被当成工具使唤的人 — 只被需要做事不被关心"],
+  ["尾款人", "付了很多预售尾款的消费者"],
+  ["特种兵旅游", "高强度快节奏旅游 — 一天打卡N个景点"],
+  ["city不city", "洋不洋气 — 时不时髦、有没有国际范"],
+  ["遥遥领先", "来自华为发布会 — 表示远远领先同行"],
+  ["命运的齿轮开始转动", "人生的转折点来了 — 改变命运的时刻"],
+  ["整顿职场", "年轻人用新观念改变职场陋习"],
+  ["精神状态美丽", "精神状态良好（反讽）— 看似正常实则炸裂"],
+  ["显眼包", "特别引人注目的人 — 在人群中很突出（多含可爱意味）"],
+
+  // === 社交关系 ===
+  ["搭子", "特定场景的伙伴 — 饭搭子、旅游搭子、学习搭子"],
+  ["i人", "MBTI中的内向型人格 — 内向的人"],
+  ["e人", "MBTI中的外向型人格 — 外向的人"],
+  ["边界感", "人与人之间保持适当距离的意识"],
+  ["情绪价值", "能给人带来正面情绪体验的价值 — 让人开心舒服"],
+  ["爹味", "好为人师、说教感重的男性做派"],
+  ["妈味", "过度操心、絮叨的做派"],
+  ["PUA", "Pick-Up Artist — 通过精神操控打压对方"],
+  ["CPU", "PUA的变体谐音 — 精神打压、洗脑"],
+  ["画饼", "承诺不兑现 — 用空头承诺忽悠人"],
+  ["舔狗", "一味讨好对方却得不到回应的人"],
+  ["备胎", "感情中的替补选项"],
+  ["crush", "短暂而热烈的暗恋或心动对象"],
+  ["纯爱战士", "相信纯粹爱情、不掺杂现实算计的人"],
+
+  // === 职场黑话 ===
+  ["赋能", "赋予能力/能量 — 给团队或业务提供支持和资源"],
+  ["闭环", "形成完整的业务循环 — 有始有终、逻辑自洽"],
+  ["抓手", "切入点、突破口 — 做事情的着力点"],
+  ["对齐", "统一认知、达成共识 — 确保大家理解一致"],
+  ["颗粒度", "细节的精细程度 — 越细颗粒度越小"],
+  ["底层逻辑", "最根本的思维方式和原理"],
+  ["顶层设计", "从全局出发的系统规划"],
+  ["组合拳", "多管齐下的综合手段"],
+  ["打法", "策略、方法、战术"],
+  ["赛道", "行业领域或竞争方向"],
+  ["场景", "用户使用产品的具体情境"],
+  ["链路", "业务流程中的各个环节串联"],
+  ["引爆点", "引发大规模爆发的关键点"],
+  ["痛点", "用户最不舒服、最需要解决的问题"],
+  ["爽点", "让用户感到极度满足的体验"],
+  ["痒点", "用户有需求但不紧急的问题"],
+  ["拉通", "协调各方、让信息畅通"],
+  ["死磕", "拼尽全力去做、不达目的不罢休"],
+  ["倒逼", "反过来推动 — 用结果倒推过程改进"],
+  ["落地", "把想法变成现实、执行到位"],
+  ["复盘", "事后回顾总结、分析得失"],
+  ["同步", "把信息传达给相关人员"],
+  ["串联", "把分散的点连接起来"],
+  ["并联", "多个事情同时推进"],
+  ["迭代", "不断优化完善、逐步升级"],
+  ["深耕", "深入钻研、长期投入"],
+  ["风口", "行业发展的红利期"],
+  ["头部", "行业中的顶端玩家"],
+  ["腰部", "行业中游的参与者"],
+  ["长尾", "大量小众市场的集合"],
+  ["降维打击", "用更高维度碾压低维度的竞争"],
+  ["降本增效", "降低成本、提高效率"],
+  ["私域", "企业自有的用户池 — 微信群、公众号等"],
+  ["公域", "公共流量平台 — 抖音、淘宝等大平台"],
+  ["转化", "把潜在用户变成付费用户"],
+  ["留存", "让用户持续使用产品"],
+  ["促活", "促进用户活跃度"],
+  ["拉新", "获取新用户"],
+  ["粘性", "用户对产品的依赖程度"],
+  ["护城河", "企业核心竞争力、竞争壁垒"],
+  ["第二曲线", "在第一业务到达顶峰前找到新的增长点"],
+  ["试错", "通过尝试来验证、不断调整"],
+  ["快速试错", "用最小成本快速试验、快速调整方向"],
+  ["all in", "全力投入、押注"],  ["方法论", "做事的系统方法和思路框架"],
+
+  // === 游戏圈 ===
+  ["GG", "Good Game — 打得好（也用于表示游戏结束/完蛋了）"],
+  ["carry", "带飞、带领团队走向胜利"],
+  ["吃鸡", "游戏《绝地求生》中取得第一名"],
+  ["落地成盒", "刚落地就阵亡变成盒子 — 形容出师不利"],
+  ["毒圈", "游戏中不断缩小的危险区域"],
+  ["伏地魔", "趴在草丛里偷袭别人的玩家"],
+  ["老六", "喜欢躲起来阴人的玩家 — 行事猥琐"],
+  ["泉水指挥官", "自己挂了却在指挥队友的人"],
+  ["补刀", "在对方快死时再给一击 — 落井下石"],
+  ["团灭", "团队全员阵亡"],
+  ["开黑", "组队一起打游戏"],
+  ["翻车", "本来顺利的事突然失败"],
+  ["满血复活", "恢复到最佳状态"],
+  ["大招", "最强技能或底牌 — 关键手段"],
+
+  // === 追星饭圈 ===
+  ["本命", "最喜欢的偶像 — 第一顺位"],
+  ["爬墙", "从喜欢一个偶像转向另一个"],
+  ["塌房", "偶像爆出负面新闻 — 人设崩塌"],
+  ["走花路", "希望偶像前程似锦、一帆风顺"],
+  ["空瓶", "控评 — 组织粉丝批量发好评控场"],
+  ["打投", "打榜投票 — 为偶像刷数据"],
+  ["蒸煮", "正主 — 粉丝对自己偶像的称呼"],
+  ["唯粉", "只喜欢组合中某一个成员的粉丝"],
+  ["CP粉", "嗑CP的粉丝 — 喜欢把两人凑成一对"],
+
+  // === 其他流行语 ===
+  ["硬核", "硬派、硬实力 — 厉害、不花哨"],
+  ["真香", "之前说不喜欢后来却很享受 — 大型打脸现场"],
+  ["你品你细品", "你好好想想其中深意"],
+  ["我太难了", "生活不易、我太难了"],
+  ["奥利给", "给力奥的倒装 — 加油、给力"],
+  ["芭比Q了", "完蛋了、惨了"],
+  ["无语子", "无语 — 表示无话可说"],
+  ["绝绝子", "太绝了 — 表示极端好或极端差"],
+  ["一整个", "完全、彻底 — 加强语气用"],
+  ["属于是", "就是、可以算是"],
+  ["浅浅", "稍微、小幅度地 — 浅浅吃一下、浅浅夸一下"],
+  ["狠狠", "大幅地、用力地 — 狠狠期待、狠狠羡慕"],
+  ["买买买", "疯狂购物 — 表示非常想买"],
+  ["爱了爱了", "太喜欢了"],
+  ["心态崩了", "心理崩溃"],
+  ["给你大拇哥", "给你点赞"],
+  ["绷不住了", "忍不住了 — 憋不住笑或哭"],
+  ["离离原上谱", "离谱到家了 — 太离谱了"],
+  ["栓大Q", "表示极度感谢（夸张版栓Q）"],
+  ["听我说谢谢你", "反讽用法 — 表示不想感谢"],
+  ["你是我的神", "来自综艺名场面 — 表示极度崇拜"],
+  ["DDDD", "懂的都懂 — 不必多说"],
+  ["沉浸式", "全身心投入某种体验"],
+  ["XX刺客", "看似便宜实则贵的消费 — 雪糕刺客、水果刺客"],
+  ["XX天花板", "某领域的最高水准 — 颜值天花板、战力天花板"],
+  ["万物皆可XX", "什么都可以用某种方式做"],
+  ["入股不亏", "值得投入/喜欢 — 不会后悔"],
+  ["狠狠拿捏", "完全掌控"],
+  ["赢麻了", "赢得太多了 — 大获全胜"],
+  ["嘴替", "说出了我想说的话的人"],
+  ["互联网嘴替", "在网上说出大家心声的人"],
+  ["格局打开", "眼界放大一点"],
+  ["沉浸式体验", "全身心投入地体验某件事"],
+  ["废话文学", "说了等于没说的话 — 看似有道理实则无意义"],
+  ["发疯", "毫无顾忌地表达真实想法"],
+  ["社交距离", "人与人之间保持的舒适距离"],
+  ["电子榨菜", "吃饭时看的视频/内容 — 下饭内容"],
+  ["多巴胺穿搭", "鲜艳明亮的穿搭风格 — 让人感到快乐的穿搭"],
+
+  // === 补充 ===
+  ["宝藏XX", "非常出色的某人或某物 — 宝藏男孩、宝藏店铺"],
+  ["氛围感", "整体感觉和气氛 — 多形容照片或场景的氛围"],
+  ["拿捏", "完全掌控 — 把某件事控制得死死的"],
+  ["破圈", "突破原有圈子被大众所知 — 出圈"],
+  ["自来水", "自发宣传的粉丝 — 像自来水一样免费传播"],
+  ["反向种草", "本来想吐槽结果却让人想买"],
+  ["沉浸式XX", "全身心投入某件事 — 沉浸式化妆、沉浸式学习"],
+  ["厌蠢症", "看到愚蠢行为就受不了的症状"],
+  ["配得感", "觉得自己值得拥有美好事物的心理状态"],
+  ["嘴瓢", "说话说错了、舌头打结"],
+  ["干货", "没有水分、纯实用有价值的内容"],
+  ["强推", "强烈推荐"],
+  ["踩雷", "遇到不好的体验 — 踩雷了"],
+  ["真瓜", "真实可靠的八卦消息"],
+  ["吃瓜", "看热闹、围观八卦事件"],
+  ["营业", "偶像/网红发布内容与粉丝互动"],
+  ["避雷", "提前提醒别人避开不好的东西"],
+
+["AFAIK", "As Far As I Know 据我所知"],
+  ["AFK", "Away From Keyboard 离开键盘"],
+  ["AKA", "Also Known As 也就是，亦称，也被称为"],
+  ["AOE", "Area of Effect 范围性作用"],
+  ["ASAP", "As Soon As Possible 尽快"],
+  ["ATB", "All The Best 一切顺利，一切都是最好的"],
+  ["ATM", "At The Moment 此刻 / Automated Teller Machine 自动柜员机"],
+  ["B2B", "Business to Business 企业对企业，如阿里巴巴"],
+  ["B2C", "Business to Consumer 企业对消费者，如京东"],
+  ["B4", "Before 之前"],
+  ["BBS", "Be Back Soon 很快回来 / Bulletin Board System 电子公告板"],
+  ["BE", "Bad Ending 坏结局 / Backend 后端"],
+  ["BF", "Boyfriend 男朋友"],
+  ["BFF", "Best Friends Forever 永远的好朋友"],
+  ["BOT", "Back On Topic 回到主题 / Bot 机器人"],
+  ["BP", "Ban, Pick 禁用，挑选"],
+  ["BR", "Best Regards 诚挚的问候"],
+  ["BRB", "Be Right Back 马上回来"],
+  ["BS", "Bullshit 胡说八道"],
+  ["BTW", "By The Way 顺便说一下"],
+  ["C2C", "Consumer to Consumer 消费者对消费者，如淘宝 / Copy to China 复制到中国"],
+  ["CD", "Cool Down 冷却时间"],
+  ["DAU", "Daily Active Users 日活跃用户"],
+  ["DDL", "Deadline 截止期限"],
+  ["DIY", "Do It Yourself 自己动手"],
+  ["DM", "Direct Message 直接消息，私信"],
+  ["DPS", "Damage Per Second 每秒产生伤害"],
+  ["EOD", "End of Day 工作日结束时"],
+  ["EOW", "End of Week 工作周结束时"],
+  ["ETA", "Estimated Time of Arrival 预计到达时间"],
+  ["EXP", "Export 出口，导出 / Experience 经验 / Exploit 漏洞利用"],
+  ["FAM", "Family 家人们"],
+  ["FAQ", "Frequently Asked Questions 常见问题解答"],
+  ["FE", "Frontend 前端"],
+  ["FOMO", "Fear of Missing Out 害怕错过"],
+  ["FR", "For Real 真的假的"],
+  ["FTE", "Full-time Employee 全职雇员"],
+  ["FTW", "For The Win 为了胜利，太棒了"],
+  ["FYI", "For Your Information 供你参考"],
+  ["FYP", "For You Page 供你阅读的页面，页面推荐"],
+  ["FYR", "For Your Reference 供你参考"],
+  ["FYU", "For Your Use 供你使用"],
+  ["GF", "Girlfriend 女朋友"],
+  ["GM", "Game Master 游戏管理员 / General Manager 总经理"],
+  ["GMV", "Gross Merchandise Value 商品总价值"],
+  ["GOAT", "Greatest of All Time 史上最強，有史以来最伟大的"],
+  ["GTFO", "Get The Fuck Out 滚出去"],
+  ["HBD", "Happy Birthday 生日快乐"],
+  ["HC", "Headcount 人头数，招聘人数，职员人数"],
+  ["HMU", "Hit Me Up 联系我"],
+  ["HP", "Health Points 生命值，血量"],
+  ["HR", "Human Resources 人力资源"],
+  ["HRBP", "Human Resources Business Partner 人力资源业务合作伙伴，企业派驻到各个业务或事业部的人力资源管理者"],
+  ["IDC", "I Don't Care 我不在乎"],
+  ["IDGAF", "I Don't Give A Fuck 我不在乎"],
+  ["IDGAS", "I Don't Give A Shit 我不在乎"],
+  ["IDK", "I Don't Know 我不知道"],
+  ["IKTR", "I Know, That's Right 我知道，你说得对，强烈同意"],
+  ["IMHO", "In My Humble Opinion 个人浅见"],
+  ["IMO", "In My Opinion 个人观点"],
+  ["JD", "Job Description 职位描述"],
+  ["JDI", "Just Do It 勇敢去做，干就完了"],
+  ["JFF", "Just For Fun 只是为了好玩，闹着玩"],
+  ["JK", "Just Kidding 只是开玩笑"],
+  ["KIT", "Keep In Touch 保持联系"],
+  ["KPI", "Key Performance Indicator 关键绩效指标"],
+  ["LGTM", "Looks Good To Me 在我看来还不错"],
+  ["LMAO", "Laugh My Ass Off 笑掉我屁股，笑死我了"],
+  ["LMFAO", "Laugh My Fucking Ass Off 笑掉我该死的屁股，笑死我了"],
+  ["LMK", "Let Me Know 让我知道"],
+  ["LOL", "Laugh Out Loud 大声笑出来"],
+  ["LV", "Level 等级"],
+  ["M8", "Mate 兄弟，哥们"],
+  ["MAU", "Monthly Active Users 月活跃用户"],
+  ["MBTI", "Myers-Briggs Type Indicator 迈尔斯-布里格斯类型指标，由四组相反的先天偏好组成16种稳定的人格类型: 内向与外向(Introversion-Extraversion)、实感与直觉(Sensing-iNtuition)、思考与情感(Thinking-Feeling)、判断与感知(Judging-Perceiving)"],
+  ["MP", "Magic Points 魔法值，蓝条"],
+  ["NB", "N.B., Nota Bene 注意，划重点(拉丁文) / Notebook 笔记本，笔记本电脑"],
+  ["NPC", "Non-Player Character 非玩家角色"],
+  ["NSFW", "Not Safe For Work 办公室不宜"],
+  ["NVM", "Never Mind 没关系，别在意"],
+  ["O2O", "Online to Offline 线上到线下，如美团"],
+  ["OKR", "Objectives and Key Results 目标与关键结果"],
+  ["OMG", "Oh My God 我的上帝，我的天啦"],
+  ["OMW", "On My Way 我已经在路上了"],
+  ["OOO", "Out of Office 不上班，不在办公室"],
+  ["OP", "Overpowered 过于强大 / Operations 运营 / Original Poster 原帖作者"],
+  ["P2P", "Person to Person 个人对个人(互联网金融借贷平台) / Peer-to-Peer 点对点(网络技术架构)"],
+  ["PFP", "Profile Picture 头像 / Picture for Proof 证明图片"],
+  ["PM", "Project Manager 项目经理 / Product Manager 产品经理"],
+  ["PS", "Postscript 附言，补充说明"],
+  ["PTE", "Part-time Employee 兼职雇员"],
+  ["PTO", "Paid Time Off 带薪休假"],
+  ["PV", "Page Views 页面浏览量"],
+  ["PVE", "Player VS Environment 玩家对战环境(副本)"],
+  ["PVP", "Player VS Player 玩家间对战"],
+  ["QA", "Quality Assurance 质量保证，测试"],
+  ["QC", "Quality Control 质量控制"],
+  ["ROFL", "Roll On Floor Laughing 笑翻了"],
+  ["ROI", "Return on Investment 投资回报率"],
+  ["RS", "ReplicaSet 副本集"],
+  ["SMH", "Shake My Head 我摇头，失望"],
+  ["SOB", "Son of a Bitch 婊子养的"],
+  ["SP", "Support 支持"],
+  ["STAN", "Stand Up 站起来，支持"],
+  ["STFU", "Shut The Fuck Up 闭嘴"],
+  ["SVP", "Senior Vice President 高级副总裁"],
+  ["TBA", "To Be Announced 待公布"],
+  ["TBC", "To Be Confirmed 待确认"],
+  ["TBD", "To Be Determined 待决定"],
+  ["TBH", "To Be Honest 说实话"],
+  ["TIA", "Thanks In Advance 先谢了，劳驾"],
+  ["TIL", "Today I Learned 今天又学到了新知识"],
+  ["TL", "Technique Leader, Teach Lead 技术带头人 / Team Leader, Team Lead 团队负责人"],
+  ["TLDR", "TL;DR, Too Long; Didn't Read 太长了，没有阅读"],
+  ["TMI", "Too Much Information 太多讯息，不要再说了"],
+  ["TTYL", "Talk To You Later 稍后聊"],
+  ["TY", "Thank You 谢谢你"],
+  ["TYSM", "Thank You So Much 非常感谢"],
+  ["TYT", "Take Your Time 不用急，慢慢来"],
+  ["TYVM", "Thank You Very Much 非常感谢"],
+  ["UI", "User Interface 用户界面"],
+  ["UV", "Unique Visitors 独立访客数"],
+  ["VP", "Vice President 副总裁"],
+  ["WFH", "Work From Home 在家工作"],
+  ["WIP", "Work In Progress 进行中的工作"],
+  ["WLB", "Work-Life Balance 工作生活平衡，劳逸平衡"],
+  ["WTF", "What The Fuck 我靠，搞什么"],
+  ["WTH", "What The Hell 我晕，什么鬼"],
+  ["YOLO", "You Only Live Once 你只活一次"],
+  ["YTD", "Year to Date 从年初到今天"],
+]);
+
+// ============================================================
+// APP LOGIC
+// ============================================================
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+
+// DOM refs
+const tabsEl = $("#tabs");
+const translateInput = $("#translateInput");
+const translateBtn = $("#translateBtn");
+const translateResult = $("#translateResult");
+const highlightedText = $("#highlightedText");
+const glossaryBody = $("#glossaryBody");
+const lookupInput = $("#lookupInput");
+const lookupBtn = $("#lookupBtn");
+const lookupResult = $("#lookupResult");
+const quickTags = $("#quickTags");
+const dictCount = $("#dictCount");
+const toast = $("#toast");
+
+// Display dict count
+dictCount.textContent = DICT.size;
+
+// ============================================================
+// MODE SWITCHING
+// ============================================================
+let currentMode = "translate";
+tabsEl.addEventListener("click", (e) => {
+  const tab = e.target.closest(".tab");
+  if (!tab) return;
+  const mode = tab.dataset.mode;
+  if (mode === currentMode) return;
+  currentMode = mode;
+  $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.mode === mode));
+  $("#mode-translate").classList.toggle("hidden", mode !== "translate");
+  $("#mode-lookup").classList.toggle("hidden", mode !== "lookup");
+});
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer;
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 2000);
+}
+
+// ============================================================
+// TRANSLATION ENGINE
+// ============================================================
+function findSlangTerms(text) {
+  // Returns array of {term, meaning, start, end} sorted by position
+  const matches = [];
+  const lower = text.toLowerCase();
+  // Sort dict keys by length descending for longest-match-first
+  const keys = [...DICT.keys()].sort((a, b) => b.length - a.length);
+
+  for (const key of keys) {
+    const keyLower = key.toLowerCase();
+    let pos = 0;
+    while (pos < lower.length) {
+      const idx = lower.indexOf(keyLower, pos);
+      if (idx === -1) break;
+      // Check if this position is already covered by a longer match
+      const overlaps = matches.some(m => idx >= m.start && idx < m.end);
+      if (!overlaps) {
+        matches.push({
+          term: key,
+          meaning: DICT.get(key),
+          start: idx,
+          end: idx + key.length,
+        });
+      }
+      pos = idx + 1;
+    }
+  }
+  // Sort by position
+  matches.sort((a, b) => a.start - b.start);
+  return matches;
+}
+
+function buildHighlightedHTML(text, matches) {
+  if (matches.length === 0) return escapeHTML(text);
+  let html = "";
+  let last = 0;
+  for (const m of matches) {
+    html += escapeHTML(text.slice(last, m.start));
+    html += `<mark title="${escapeAttr(m.meaning)}">${escapeHTML(m.term)}</mark>`;
+    last = m.end;
+  }
+  html += escapeHTML(text.slice(last));
+  return html;
+}
+
+function buildGlossaryHTML(matches) {
+  if (matches.length === 0) {
+    return `<tr><td colspan="2" class="empty-hint">未识别到黑话词</td></tr>`;
+  }
+  // Deduplicate by term (case-insensitive)
+  const seen = new Set();
+  const unique = matches.filter(m => {
+    const k = m.term.toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+  return unique.map(m =>
+    `<tr><td class="slang">${escapeHTML(m.term)}</td><td class="meaning">${escapeHTML(m.meaning)}</td></tr>`
+  ).join("");
+}
+
+function escapeHTML(str) {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function escapeAttr(str) {
+  return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// ============================================================
+// MODE 1: TRANSLATE
+// ============================================================
+translateBtn.addEventListener("click", () => {
+  const text = translateInput.value.trim();
+  if (!text) {
+    showToast("请先输入文字");
+    return;
+  }
+  const matches = findSlangTerms(text);
+  highlightedText.innerHTML = buildHighlightedHTML(text, matches) || "<span class='empty-hint'>未识别到黑话词</span>";
+  glossaryBody.innerHTML = buildGlossaryHTML(matches);
+  translateResult.classList.remove("hidden");
+});
+
+// Ctrl+Enter shortcut
+translateInput.addEventListener("keydown", (e) => {
+  if (e.ctrlKey && e.key === "Enter") translateBtn.click();
+});
+
+// ============================================================
+// MODE 2: LOOKUP
+// ============================================================
+function doLookup(query) {
+  const q = query.trim();
+  if (!q) {
+    showToast("请输入要查询的词");
+    return;
+  }
+  // Case-insensitive lookup
+  const qLower = q.toLowerCase();
+  let found = null;
+  for (const [key, meaning] of DICT) {
+    if (key.toLowerCase() === qLower) {
+      found = { term: key, meaning };
+      break;
+    }
+  }
+  if (found) {
+    lookupResult.innerHTML = `
+      <div class="query-result">
+        <span class="slang-word">${escapeHTML(found.term)}</span>
+        <span class="arrow">→</span>
+        <span class="explanation">${escapeHTML(found.meaning)}</span>
+      </div>`;
+  } else {
+    // Fuzzy: try includes match
+    const partial = [];
+    for (const [key, meaning] of DICT) {
+      if (key.toLowerCase().includes(qLower) || meaning.includes(q)) {
+        partial.push({ term: key, meaning });
+      }
+    }
+    if (partial.length > 0) {
+      lookupResult.innerHTML = `
+        <div class="query-result">
+          <p style="color:#6b7280;margin-bottom:8px;">未找到完全匹配，以下可能是你想要的：</p>
+          ${partial.slice(0, 5).map(p =>
+            `<p style="margin:4px 0;"><strong style="color:#4f46e5;">${escapeHTML(p.term)}</strong> → ${escapeHTML(p.meaning)}</p>`
+          ).join("")}
+        </div>`;
+    } else {
+      lookupResult.innerHTML = `
+        <div class="query-result" style="background:#fff7ed;border-color:#fed7aa;">
+          <p style="color:#9a3412;">未找到「${escapeHTML(q)}」，可以试试其他词，或告诉我补充到词库～</p>
+        </div>`;
+    }
+  }
+}
+
+lookupBtn.addEventListener("click", () => doLookup(lookupInput.value));
+lookupInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") doLookup(lookupInput.value);
+});
+
+// ============================================================
+// QUICK TAGS
+// ============================================================
+// Pick a random sample of slang terms for quick access
+const sampleTerms = [...DICT.keys()].sort(() => Math.random() - 0.5).slice(0, 20);
+quickTags.innerHTML = sampleTerms.map(t =>
+  `<button class="quick-tag" data-term="${escapeAttr(t)}">${escapeHTML(t)}</button>`
+).join("");
+
+quickTags.addEventListener("click", (e) => {
+  const tag = e.target.closest(".quick-tag");
+  if (!tag) return;
+  const term = tag.dataset.term;
+  lookupInput.value = term;
+  doLookup(term);
+});
+
+// ============================================================
+// INIT: focus the appropriate input
+// ============================================================
+translateInput.focus();
+</script>
+</body>
+</html>
